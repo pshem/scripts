@@ -56,4 +56,7 @@ if test():
 
 	print("ROT             Decoded string" )
 	for b in range(len(lowerUpper)):
-		print(b, " ", decode(ciphertext[0], b, lowerUpper))
+		if (b < 10): #for even positioning
+			print("", b, " ", decode(ciphertext[0], b, lowerUpper))
+		else:
+			print(b, " ", decode(ciphertext[0], b, lowerUpper))
