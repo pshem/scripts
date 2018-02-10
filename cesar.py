@@ -1,13 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+
+#By @pshem and @ZsanettM 2018, Licensed: Apache2.0
+#tested in Python 3.5
 
 import sys
 import string
-
-ciphertext = []
-
-with open(sys.argv[1], 'r') as encryptedFile:
-	for line in encryptedFile:
-		ciphertext.append(line)
 
 lowerUpper = string.ascii_lowercase + string.ascii_uppercase #+ string.digits
 
@@ -18,10 +15,12 @@ def decode(encrypted, rot, rotatingSurface):
 			for j in range(len(rotatingSurface)):
 				if encrypted[i] == rotatingSurface[j]:
 					result += rotatingSurface[(j + rot) % len(rotatingSurface)]
-					#result = rotatingSurface[len(rotatingSurface) - i]
 		else:
-			#don't change
+			#don't change characters outside the rotatingSurface
 			result += encrypted[i]
+	#remove trailing newlines
+	while ord(result[-1]) == 10: #'/n' neline
+		result = result[:-1]
 	return result
 
 oldCiphertext = []
@@ -31,20 +30,24 @@ with open('decryptMe1.txt', 'r') as encryptedFile:
 		oldCiphertext.append(line)
 
 def test():
-	if decode(oldCiphertext[0], 45, lowerUpper) is "Hence! home, you idle creatures get you home:":
-		print("Decoding works")
-		return true
+	test1 = decode(oldCiphertext[0], 45, lowerUpper)
+	if (test1) == "Hence! home, you idle creatures get you home:":
+		#print("Decoding works")
+		return True
 	else:
-		print(decode(oldCiphertext[0], 45, lowerUpper))
+		print(test1, "Hence! home, you idle creatures get you home:")
+		print(len(test1), len("Hence! home, you idle creatures get you home:"))
 		raise ValueError('Something is wrong with decode')
-		return false
-test()
-"""
-for b in range(len(lowerUpper)):
-	print(b, " ", decode(oldCiphertext, b, lowerUpper))
-"""
-"""
-	print()
-else:
-	#print("Your code broke again")
-"""
+		return False
+
+#if slef test works, then start decoding the given file
+if test():
+	ciphertext = []
+
+	with open(sys.argv[1], 'r') as encryptedFile:
+		for line in encryptedFile:
+			ciphertext.append(line)
+
+	print("ROT             Decoded string" )
+	for b in range(len(lowerUpper)):
+		print(b, " ", decode(ciphertext[0], b, lowerUpper))
