@@ -6,6 +6,12 @@
 import sys
 import string
 
+#check the number of arguments passed
+if len(sys.argv) == 1:
+	raise ValueError('No file passed to decode')
+elif len(sys.argv) > 2:
+	raise ValueError('Too many arguments passed. Pass just one')
+
 lowerUpper = string.ascii_lowercase + string.ascii_uppercase #+ string.digits
 
 def decode(encrypted, rot, rotatingSurface):
@@ -35,12 +41,14 @@ def test():
 		#print("Decoding works")
 		return True
 	else:
-		print(test1, "Hence! home, you idle creatures get you home:")
+		print("The following lines should be identical")
+		print(test1)
+		print("Hence! home, you idle creatures get you home:")
 		print(len(test1), len("Hence! home, you idle creatures get you home:"))
 		raise ValueError('Something is wrong with decode')
 		return False
 
-#if slef test works, then start decoding the given file
+#if self test works, then start decoding the given file
 if test():
 	ciphertext = []
 
@@ -50,4 +58,7 @@ if test():
 
 	print("ROT             Decoded string" )
 	for b in range(len(lowerUpper)):
-		print(b, " ", decode(ciphertext[0], b, lowerUpper))
+		if (b < 10): #for even positioning
+			print("", b, " ", decode(ciphertext[0], b, lowerUpper))
+		else:
+			print(b, " ", decode(ciphertext[0], b, lowerUpper))
