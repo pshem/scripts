@@ -41,7 +41,9 @@ def test():
 		#print("Decoding works")
 		return True
 	else:
-		print(test1, "Hence! home, you idle creatures get you home:")
+		print("The following lines should be identical")
+		print(test1)
+		print("Hence! home, you idle creatures get you home:")
 		print(len(test1), len("Hence! home, you idle creatures get you home:"))
 		raise ValueError('Something is wrong with decode')
 		return False
