@@ -6,6 +6,12 @@
 import sys
 import string
 
+#check the number of arguments passed
+if len(sys.argv) == 1:
+	raise ValueError('No file passed to decode')
+elif len(sys.argv) > 2:
+	raise ValueError('Too many arguments passed. Pass just one')
+
 lowerUpper = string.ascii_lowercase + string.ascii_uppercase #+ string.digits
 
 def decode(encrypted, rot, rotatingSurface):
@@ -40,7 +46,7 @@ def test():
 		raise ValueError('Something is wrong with decode')
 		return False
 
-#if slef test works, then start decoding the given file
+#if self test works, then start decoding the given file
 if test():
 	ciphertext = []
 

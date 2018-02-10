@@ -4,17 +4,21 @@
 import sys
 import string
 
-#if !sys.argv[1]:
+#check the number of arguments passed
+if len(sys.argv) == 1:
+	raise ValueError('No file passed to decode')
+elif len(sys.argv) > 2:
+	raise ValueError('Too many arguments passed. Pass just one')
 
-
-#encryptedFile = open(, 'r')
+ciphertext = []
 
 with open(sys.argv[1], 'r') as encryptedFile:
-	#ciphertext = encryptedFile.read()
 	for line in encryptedFile:
-		print(line, end='')
+		#remove trailing newlines
+		while line.endswith(chr(10)): #'/n' newline
+			line = line[:-1]
+		ciphertext.append(line)
+		print(ciphertext[-1])
 
 
 print(type(encryptedFile), type(ciphertext))
-
-#encryptedFile.close()
