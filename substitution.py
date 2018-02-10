@@ -4,7 +4,10 @@
 import sys
 import string
 
-#if !sys.argv[1]:
+if len(sys.argv) == 0:
+	raise ValueError('No file to decode passed')
+elif len(sys.argv) > 1:
+	raise ValueError('Too many arguments passed. Pass just one')
 
 
 #encryptedFile = open(, 'r')
