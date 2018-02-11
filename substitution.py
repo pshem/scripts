@@ -38,15 +38,28 @@ with open(sys.argv[1], 'r') as encryptedFile:
 		print(ciphertext[-1])
 
 #get the frequency at which particular letters are present in text
-letter_frequency = collections.Counter()
+letter_freq = collections.Counter()
 for i in ciphertext:
 	freq = collections.Counter(i)
-	letter_frequency += freq
+	letter_freq += freq
+
+#get all letters which appear next to themselves, like 'm' in common
+di_letter_freq = collections.Counter()
+#for i in ciphertext:
+#TODO: Implement
+
+
+word_freq = collections.Counter()
+for i in ciphertext:
+	#divide on whitespace
+	words = i.split()
+	freq = collections.Counter(words)
+	word_freq += freq
 
 #get the total number of letters
 numLetters = 0
 for letter in important_chars:
-	numLetters += letter_frequency[letter]
+	numLetters += letter_freq[letter]
 
 #statistics from https://en.wikipedia.org/wiki/Letter_frequency
 englishFrequency = dict(a=8.167, b=1.492, c=2.782, d=4.253, e=12.702, f=2.228,
@@ -56,14 +69,47 @@ englishFrequency = dict(a=8.167, b=1.492, c=2.782, d=4.253, e=12.702, f=2.228,
 
 #format the frequency table roughly with tabs
 #TODO:redo with https://docs.python.org/3.5/library/string.html#format-specification-mini-language
-head = "{letter:s}\t{TimesInText:s}\t{OddsInText:s}\t{OddsInEnglish:s}"
-fmt = "{letter:s}\t{TimesInText:d}\t{OddsInText:0.2f}%\t{OddsInEnglish:0.2f}%"
+head = "{a:s}\t{b:s}\t{c:s}\t{d:s}"
+fmt = "{a:s}\t{b:d}\t{c:0.2f}%\t{d:0.2f}%"
 
-print(head.format(letter = 'Letter', TimesInText = 'Times', OddsInText = 'Freq', OddsInEnglish = 'Freq'))
-print(head.format(letter = '', TimesInText = 'in', OddsInText = 'in', OddsInEnglish = 'in'))
-print(head.format(letter = '', TimesInText = 'text', OddsInText = 'text', OddsInEnglish = 'English'))
+print(head.format(a = 'Letter', b = 'Times', c = 'Freq', d = 'Freq'))
+print(head.format(a = '', b = 'in', c = 'in', d = 'in'))
+print(head.format(a = '', b = 'text', c = 'text', d = 'English'))
 
 for letter in important_chars:
-    print(fmt.format(letter = letter, TimesInText = letter_frequency[letter],
-	 OddsInText = ((letter_frequency[letter]/numLetters)*100),
-	 OddsInEnglish = englishFrequency[letter])) #if english letters
+    print(fmt.format(a = letter, b = letter_freq[letter],
+	 c = ((letter_freq[letter]/numLetters)*100),
+	 d = englishFrequency[letter])) #if english letters
+
+#word frequency table
+#TODO: strip the '-' word
+unique_words = word_freq.most_common()		#turn the Counter into a list
+one_letter_word_freq = list()				#create separate lists for one,
+two_letter_word_freq = list()				#two and three letter words
+tri_letter_word_freq = list()				#and longer ones, but only if they
+long_word_freq = list()						#appear multiple times
+#<list>[x][0] gives the key, <list>[x][1] gives the number
+numWords = len(unique_words) #may containg junk such as -
+
+for i in unique_words:
+	#print(i[0], i[1])	#for debugging
+	if len(i[0]) == 1:
+		one_letter_word_freq.append(i)
+	elif len(i[0]) == 2:
+		two_letter_word_freq.append(i)
+	elif len(i[0]) == 3:
+		tri_letter_word_freq.append(i)
+	elif i[1] > 1:
+		long_word_freq.append(i)
+print()
+print(head.format(a = 'Word', b = 'Times', c = 'Freq', d = 'Freq'))
+print(head.format(a = '', b = 'in', c = 'in', d = 'in'))
+print(head.format(a = '', b = 'text', c = 'text', d = 'English'))
+for i in one_letter_word_freq:
+    print(fmt.format(a = i[0], b = i[1], c = ((i[1]/numWords)*100), d = 0))
+for i in two_letter_word_freq:
+    print(fmt.format(a = i[0], b = i[1], c = ((i[1]/numWords)*100), d = 0))
+for i in tri_letter_word_freq:
+    print(fmt.format(a = i[0], b = i[1], c = ((i[1]/numWords)*100), d = 0))
+for i in long_word_freq:
+    print(fmt.format(a = i[0], b = i[1], c = ((i[1]/numWords)*100), d = 0))
