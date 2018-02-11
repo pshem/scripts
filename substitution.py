@@ -6,30 +6,33 @@
 import sys
 import string
 import collections
+import argparse
 
-#check the number of arguments passed
-if len(sys.argv) == 1:
-	raise ValueError('No file passed to decode')
-elif len(sys.argv) > 3:
-	raise ValueError('Too many arguments passed. Pass just one')
-elif len(sys.argv) == 3:
-	if (sys.argv[2] != '-c'):
-		raise ValueError('Use -c if you want case insensitive parsing')
+parser = argparse.ArgumentParser(description='This script will perform frequency analysis on the passed file')
+parser.add_argument('infile', help="Pass the file you want to analyse")
+case = parser.add_mutually_exclusive_group()
+case.add_argument('-c', '--case-insensitive', action="store_true",
+ dest="case", help="Pass if you want to ignore case", default=True)
+case.add_argument('-C', '--case-sensitive', action='store_false',
+ dest="case", help="Pass if you care about the case", default=True)
+args = parser.parse_args()
 
 ciphertext = []
 
 #select the characters you want to deal with. Others will not be altered
 important_chars = string.ascii_lowercase + string.ascii_uppercase
 
+print(type(args.infile))
+
 #read the file into a list of strings(1 string per line)
-with open(sys.argv[1], 'r') as encryptedFile:
+with open(args.infile, 'r') as encryptedFile:
 	for line in encryptedFile:
 		#remove trailing newline(s)
 		while line.endswith(chr(10)): #'/n' newline
 			line = line[:-1]
 
 		#if case insensitive mode is turned on, turn all chars lowercase
-		if (sys.argv[2] == '-c'):
+		if args.case:
 			line = line.lower()
 			important_chars = string.ascii_lowercase
 
@@ -62,10 +65,10 @@ for letter in important_chars:
 	numLetters += letter_freq[letter]
 
 #statistics from https://en.wikipedia.org/wiki/Letter_frequency
-englishFrequency = dict(a=8.167, b=1.492, c=2.782, d=4.253, e=12.702, f=2.228,
- g=2.015, h=6.094, i=6.966, j=0.153, k=0.772, l=4.025, m=2.406, n=6.749,
-  o=7.507, p=1.929, q=0.095, r=5.987, s=6.327, t=9.056, u=2.758, v=0.978,
-   w=2.360, x=0.150, y=1.974, z=0.074)
+englishFrequency = collections.defaultdict(lambda:0, a=8.167, b=1.492, c=2.782,
+ d=4.253, e=12.702, f=2.228, g=2.015, h=6.094, i=6.966, j=0.153, k=0.772,
+ l=4.025, m=2.406, n=6.749, o=7.507, p=1.929, q=0.095, r=5.987, s=6.327,
+ t=9.056, u=2.758, v=0.978, w=2.360, x=0.150, y=1.974, z=0.074)
 
 #format the frequency table roughly with tabs
 #TODO:redo with https://docs.python.org/3.5/library/string.html#format-specification-mini-language
