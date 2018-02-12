@@ -5,7 +5,7 @@ A bunch of python3 scripts written as I learn the language.
 * Substitution currently performs letter and word frequency analysis on the file you pass to it. It should eventually get some automated decryption abilities
 ```
 pshem@PC:somewhere/scripts$ ./substitution.py --help
-usage: substitution.py [-h] [-c | -C] infile
+usage: substitution.py [-h] [-c | -C] [-v] infile
 
 This script will perform frequency analysis on the passed file
 
@@ -15,8 +15,10 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   -c, --case-insensitive
-                        Pass if you want to ignore case
+                        Pass if you want to ignore case(default)
   -C, --case-sensitive  Pass if you care about the case
+  -v, --verbose         Pass once to print the ciphertext. To be extended
+
 ```
 * More scripts may or may not be written later
 
