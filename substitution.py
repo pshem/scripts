@@ -42,25 +42,31 @@ def parseCiphertext(infile = args.infile, case = args.case, verbose = args.verbo
 
 ciphertext = parseCiphertext()
 
-#get the frequency at which particular letters are present in text
-letter_freq = collections.Counter()
-for i in ciphertext:
-	freq = collections.Counter(i)
-	letter_freq += freq
+#TODO: check the performance with ciphertext as a globa/local variable
+def getFrequencies():
+	letter_freq = collections.Counter()
+	di_letter_freq = collections.Counter()
+	word_freq = collections.Counter()
 
-#get all letters which appear next to themselves, like 'm' in common
-di_letter_freq = collections.Counter()
-for i in ciphertext:
-	for j, k in zip(i, i[1:]):
-		if j == k:
-			di_letter_freq[j] +=1
+	for i in ciphertext:
+		#get the frequency at which letters are present in text
+		freq = collections.Counter(i)
+		letter_freq += freq
+		#get all letters which appear next to themselves, like 'm' in common
+		for j, k in zip(i, i[1:]):
+			if j == k:
+				di_letter_freq[j] +=1
+		#divide on whitespace
+		words = i.split()
+		freq = collections.Counter(words)
+		word_freq += freq
+	return list([letter_freq, di_letter_freq, word_freq])
 
-word_freq = collections.Counter()
-for i in ciphertext:
-	#divide on whitespace
-	words = i.split()
-	freq = collections.Counter(words)
-	word_freq += freq
+#For now, split back into 3 Counters
+quantities = getFrequencies()
+letter_freq = quantities[0]
+di_letter_freq = quantities[1]
+word_freq = quantities[2]
 
 #get the total number of letters
 numLetters = 0
