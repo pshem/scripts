@@ -3,6 +3,11 @@
 #By @pshem and @ZsanettM 2018, Licensed: Apache2.0
 #tested in Python 3.5
 
+#interesting links:
+#http://www.stealthcopter.com/blog/2010/01/python-cryptography-decoding-a-caesar-shift-frequency-analysis/
+#http://www.stealthcopter.com/blog/2009/12/python-cryptograph-using-maketrans-for-substitution-and-caesar-ciphers/
+#https://inventwithpython.com/hacking/chapter20.html
+
 import sys
 import string
 
