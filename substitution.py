@@ -85,7 +85,7 @@ def getFrequencies(current_ciphertext):
 	return list([letter_freq, di_letter_freq, one_letter_word_freq, two_letter_word_freq, tri_letter_word_freq, long_word_freq, numWords])
 #end getFrequencies()
 
-#For now, split back into 6 Counters and an integer
+#For now, split back into 2 Counters, 4 lists and an integer
 quantities = getFrequencies(ciphertext)
 letter_freq = quantities[0]
 di_letter_freq = quantities[1]
@@ -96,9 +96,13 @@ long_word_freq = quantities[5]
 numWords = quantities[6]
 
 #get the total number of letters
-numLetters = 0
-for letter in important_chars:
-	numLetters += letter_freq[letter]
+def countLetters(letter_freq):
+	numLetters = 0
+	for letter in important_chars:
+		numLetters += letter_freq[letter]
+	return numLetters
+
+numLetters = countLetters(letter_freq)
 
 #TODO: keep data out of code - specify a file format for this
 #statistics from https://en.wikipedia.org/wiki/Letter_frequency
@@ -113,6 +117,34 @@ engWordList1 = frozenset(["a", "I"])
 engWordList2 = frozenset(["be", "to", "of", "in", "it", "on", "he", "as", "do", "at", "by", "we", "or", "an", "my", "so", "up", "if", "go", "me", "no", "us", "is", "am"])
 engWordList3 = frozenset(["and", "the", "for", "not", "you", "but", "his", "say", "her", "she", "one", "all", "out", "who", "get", "can", "him", "see", "now", "its", "use", "two", "how", "our", "way", "new", "any", "day", "are", "was"])
 engWordList4 = frozenset(["that", "have", "with", "this", "from", "they", "will", "what", "when", "make", "like", "time", "just", "know", "take", "into", "year", "your", "good", "some", "them", "work", "even", "want", "give", "most", "well", "than", "then", "look", "only", "come", "over", "also", "back", "would", "there", "their", "about", "which", "could", "other", "think", "after", "first", "these", "people", "because"])
+
+# compare text with average English.  The lower, the better
+def howEnglish(text):
+	quantities = getFrequencies(text)
+	numLetters = countLetters(quantities[0])
+	#TODO: scale expected divergence with length of text
+	expected_error = 5
+	score = 0
+
+# punish large differences in letter frequency
+	for letter in important_chars:
+		score = abs((quantities[0][letter]/numLetters)*100 - engLetterFreq[letter]) - expected_error
+# punish diletters not present in English
+# TODO: special case with too many different diletters?
+	for i in quantities[1]:
+		#add 3 for each diletter not present in English. Possible problem with SPACELESSTEXT
+		score += 3 * (not bool(i in engDiLetterList))
+# reward presence of well known words
+	for i in quantities[2]:	# TODO: allow lowercase i in case insensitive mode(-c)
+		score -= bool(i in engWordList1)
+	for i in quantities[3]:
+		score -= bool(i in engWordList2)
+	for i in quantities[4]:
+		score -= bool(i in engWordList3)
+	for i in quantities[5]:
+		score -= bool(i in engWordList4)
+	return score
+#end howEnglish()
 
 #format the frequency table roughly with tabs
 #TODO:redo with https://docs.python.org/3.5/library/string.html#format-specification-mini-language
@@ -143,3 +175,4 @@ for i in tri_letter_word_freq:
 	print(fmt.format(a = i[0], b = i[1], c = ((i[1]/numWords)*100), d = 0))
 for i in long_word_freq:
 	print(fmt.format(a = i[0], b = i[1], c = ((i[1]/numWords)*100), d = 0))
+print("Score: " + str(howEnglish(ciphertext)))
