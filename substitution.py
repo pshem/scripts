@@ -110,7 +110,7 @@ engLetterFreq = collections.defaultdict(lambda:0, a=8.167, b=1.492, c=2.782,
  d=4.253, e=12.702, f=2.228, g=2.015, h=6.094, i=6.966, j=0.153, k=0.772,
  l=4.025, m=2.406, n=6.749, o=7.507, p=1.929, q=0.095, r=5.987, s=6.327,
  t=9.056, u=2.758, v=0.978, w=2.360, x=0.150, y=1.974, z=0.074)
-engDiLetterList = frozenset(["ll", "ee", "ss", "oo", "tt", "ff", "rr", "nn", "pp", "cc"])
+engDiLetterList = frozenset(["ll", "ee", "ss", "oo", "tt", "ff", "rr", "nn", "pp", "cc", "mm"])
  #statistics from https://en.wikipedia.org/wiki/Most_common_words_in_English
  # ~100 most common english words. All forms of be added(is, are)
 engWordList1 = frozenset(["a", "I"])
@@ -123,26 +123,30 @@ def howEnglish(text):
 	quantities = getFrequencies(text)
 	numLetters = countLetters(quantities[0])
 	#TODO: scale expected divergence with length of text
-	expected_error = 5
+	expected_error = 3
 	score = 0
 
 # punish large differences in letter frequency
 	for letter in important_chars:
-		score = abs((quantities[0][letter]/numLetters)*100 - engLetterFreq[letter]) - expected_error
+# add 0 if the error is smaller than expected error
+		score += max(0, abs((quantities[0][letter]/numLetters)*100 - engLetterFreq[letter]) - expected_error)
+#for debugging
+		print(letter + " " + str(score))
 # punish diletters not present in English
 # TODO: special case with too many different diletters?
 	for i in quantities[1]:
 		#add 3 for each diletter not present in English. Possible problem with SPACELESSTEXT
-		score += 3 * (not bool(i in engDiLetterList))
+		score += 3 * (not bool(str(i[0]+i[0]) in engDiLetterList))
+		print(i[0] + i[0] + " " + str(score))
 # reward presence of well known words
 	for i in quantities[2]:	# TODO: allow lowercase i in case insensitive mode(-c)
-		score -= bool(i in engWordList1)
+		score -= bool(i[0] in engWordList1)
 	for i in quantities[3]:
-		score -= bool(i in engWordList2)
+		score -= bool(i[0] in engWordList2)
 	for i in quantities[4]:
-		score -= bool(i in engWordList3)
+		score -= bool(i[0] in engWordList3)
 	for i in quantities[5]:
-		score -= bool(i in engWordList4)
+		score -= bool(i[0] in engWordList4)
 	return score
 #end howEnglish()
 
