@@ -7,6 +7,7 @@ import sys
 import string
 import collections
 import argparse
+import json
 
 parser = argparse.ArgumentParser(description='This script will perform frequency analysis on the passed file')
 parser.add_argument('infile', help="Pass the file you want to analyse")
@@ -15,7 +16,10 @@ case.add_argument('-c', '--case-insensitive', action="store_true",
  dest="case", help="Pass if you want to ignore case(default)", default=True)
 case.add_argument('-C', '--case-sensitive', action='store_false',
  dest="case", help="Pass if you care about the case", default=True)
-parser.add_argument('-v', '--verbose', action="count", help="Pass once to print the ciphertext. To be extended")
+parser.add_argument('-l', '--lang', default="lang/english.json",
+ help="Pass the path to a language statistics file", type=argparse.FileType('r', encoding='UTF-8'))
+parser.add_argument('-v', '--verbose', action="count",
+ help="Pass once to print the ciphertext. To be extended")
 args = parser.parse_args()
 
 if args.case:
@@ -55,7 +59,7 @@ def getFrequencies(current_ciphertext):
 		letter_freq += freq
 		#get all letters which appear next to themselves, like 'm' in common
 		for j, k in zip(i, i[1:]):
-			if j == k:
+			if j == k and j in important_chars:
 				di_letter_freq[j] +=1
 		#divide on whitespace
 		words = i.split()
@@ -87,13 +91,13 @@ def getFrequencies(current_ciphertext):
 
 #For now, split back into 2 Counters, 4 lists and an integer
 quantities = getFrequencies(ciphertext)
-letter_freq = quantities[0]
-di_letter_freq = quantities[1]
-one_letter_word_freq = quantities[2]
-two_letter_word_freq = quantities[3]
-tri_letter_word_freq = quantities[4]
-long_word_freq = quantities[5]
-numWords = quantities[6]
+letter_freq = quantities[0] 			#collections.counter
+di_letter_freq = quantities[1] 			#frozenset
+one_letter_word_freq = quantities[2]	#frozenset
+two_letter_word_freq = quantities[3]	#frozenset
+tri_letter_word_freq = quantities[4]	#frozenset
+long_word_freq = quantities[5]			#frozenset
+numWords = quantities[6]				#int
 
 #get the total number of letters
 def countLetters(letter_freq):
@@ -104,19 +108,26 @@ def countLetters(letter_freq):
 
 numLetters = countLetters(letter_freq)
 
-#TODO: keep data out of code - specify a file format for this
-#statistics from https://en.wikipedia.org/wiki/Letter_frequency
-engLetterFreq = collections.defaultdict(lambda:0, a=8.167, b=1.492, c=2.782,
- d=4.253, e=12.702, f=2.228, g=2.015, h=6.094, i=6.966, j=0.153, k=0.772,
- l=4.025, m=2.406, n=6.749, o=7.507, p=1.929, q=0.095, r=5.987, s=6.327,
- t=9.056, u=2.758, v=0.978, w=2.360, x=0.150, y=1.974, z=0.074)
-engDiLetterList = frozenset(["ll", "ee", "ss", "oo", "tt", "ff", "rr", "nn", "pp", "cc", "mm"])
- #statistics from https://en.wikipedia.org/wiki/Most_common_words_in_English
- # ~100 most common english words. All forms of be added(is, are)
-engWordList1 = frozenset(["a", "I"])
-engWordList2 = frozenset(["be", "to", "of", "in", "it", "on", "he", "as", "do", "at", "by", "we", "or", "an", "my", "so", "up", "if", "go", "me", "no", "us", "is", "am"])
-engWordList3 = frozenset(["and", "the", "for", "not", "you", "but", "his", "say", "her", "she", "one", "all", "out", "who", "get", "can", "him", "see", "now", "its", "use", "two", "how", "our", "way", "new", "any", "day", "are", "was"])
-engWordList4 = frozenset(["that", "have", "with", "this", "from", "they", "will", "what", "when", "make", "like", "time", "just", "know", "take", "into", "year", "your", "good", "some", "them", "work", "even", "want", "give", "most", "well", "than", "then", "look", "only", "come", "over", "also", "back", "would", "there", "their", "about", "which", "could", "other", "think", "after", "first", "these", "people", "because"])
+def json2python(j):
+	letterFreq = collections.defaultdict(lambda:  0)
+	letterFreq.update(j["letterFreq"]["data"])
+	diLetterList = frozenset(j["diLetterList"]["data"])
+	wordList = list()
+	wordList.append("")
+	wordList.append(frozenset(j["wordList"]["data"]["1"]))
+	wordList.append(frozenset(j["wordList"]["data"]["2"]))
+	wordList.append(frozenset(j["wordList"]["data"]["3"]))
+	wordList.append(frozenset(j["wordList"]["data"]["4"]))
+	return list([letterFreq, diLetterList, wordList[1], wordList[2], wordList[3], wordList[4]])
+
+#load english frequencies from json
+lang = json2python(json.load(args.lang))
+engLetterFreq = lang[0]
+engDiLetterList = lang[1]
+engWordList1 = lang[2]
+engWordList2 = lang[3]
+engWordList3 = lang[4]
+engWordList4 = lang[5]
 
 # compare text with average English.  The lower, the better
 def howEnglish(text):
@@ -130,14 +141,13 @@ def howEnglish(text):
 	for letter in important_chars:
 # add 0 if the error is smaller than expected error
 		score += max(0, abs((quantities[0][letter]/numLetters)*100 - engLetterFreq[letter]) - expected_error)
-#for debugging
-		print(letter + " " + str(score))
+		#print(letter + " " + str(score)) #for debugging
 # punish diletters not present in English
 # TODO: special case with too many different diletters?
 	for i in quantities[1]:
 		#add 3 for each diletter not present in English. Possible problem with SPACELESSTEXT
 		score += 3 * (not bool(str(i[0]+i[0]) in engDiLetterList))
-		print(i[0] + i[0] + " " + str(score))
+		#print(i[0] + i[0] + " " + str(score)) #for debugging
 # reward presence of well known words
 	for i in quantities[2]:	# TODO: allow lowercase i in case insensitive mode(-c)
 		score -= bool(i[0] in engWordList1)
