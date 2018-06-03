@@ -30,7 +30,7 @@ def decode(encrypted, rot, rotatingSurface):
 			#don't change characters outside the rotatingSurface
 			result += encrypted[i]
 	#remove trailing newlines
-	while ord(result[-1]) == 10: #'/n' neline
+	while ord(result[-1]) == 10: #'/n' newline
 		result = result[:-1]
 	return result
 
