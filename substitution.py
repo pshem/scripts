@@ -33,13 +33,20 @@ def getFrequencies(text, important_chars):
 	di_letter_freq = collections.Counter()
 	word_freq = collections.Counter()
 
-	#letter frequency table
+	# letter frequency table
 	freq = collections.Counter(text)
 	letter_freq += freq
-	#get all letters which appear next to themselves, like 'm' in common
+
+	# total number of letter
+	numLetters = 0
+	for letter in important_chars:
+		numLetters += letter_freq[letter]
+
+	# letters which appear next to themselves, like 'm' in common
 	for j, k in zip(text, text[1:]):
 		if j == k and j in important_chars:
 			di_letter_freq[j] +=1
+
 	#divide on whitespace
 	words = text.split()
 	freq = collections.Counter(words)
@@ -50,8 +57,8 @@ def getFrequencies(text, important_chars):
 	unique_words = word_freq.most_common()		#turn the Counter into a list
 	one_letter_word_freq = list()				#create separate lists for one,
 	two_letter_word_freq = list()				#two and three letter words
-	tri_letter_word_freq = list()				#and longer ones, but only if they
-	long_word_freq = list()						#appear multiple times
+	tri_letter_word_freq = list()				#and longer ones, but only if
+	long_word_freq = list()						#they appear multiple times
 	#<list>[x][0] gives the key, <list>[x][1] gives the number
 	numWords = len(unique_words) #may containg junk such as -
 
@@ -65,17 +72,13 @@ def getFrequencies(text, important_chars):
 			tri_letter_word_freq.append(i)
 		elif i[1] > 1:
 			long_word_freq.append(i)
-	return list([letter_freq, di_letter_freq, one_letter_word_freq, two_letter_word_freq, tri_letter_word_freq, long_word_freq, numWords])
+	return list([letter_freq, di_letter_freq, one_letter_word_freq,
+	two_letter_word_freq, tri_letter_word_freq, long_word_freq,
+ 	numWords, numLetters])
 #end getFrequencies()
 
-# TODO: roll into getFrequencies()
-# get the total number of letters
-def countLetters(letter_freq, important_chars):
-	numLetters = 0
-	for letter in important_chars:
-		numLetters += letter_freq[letter]
-	return numLetters
-
+# TODO: convert to lowercase if args.case == False
+# convert statistics to the needed datastructures
 def json2python(j):
 	letterFreq = collections.defaultdict(lambda:  0)
 	letterFreq.update(j["letterFreq"]["data"])
@@ -86,36 +89,40 @@ def json2python(j):
 	wordList.append(frozenset(j["wordList"]["data"]["2"]))
 	wordList.append(frozenset(j["wordList"]["data"]["3"]))
 	wordList.append(frozenset(j["wordList"]["data"]["4"]))
-	return list([letterFreq, diLetterList, wordList[1], wordList[2], wordList[3], wordList[4]])
+	alphabet = j["alphabet"]
+	return list([letterFreq, diLetterList, wordList[1], wordList[2],
+ 	 wordList[3], wordList[4], alphabet])
 #end json2python(j)
 
 # compare text with average English.  The lower, the better
-def howEnglish(text, important_chars, lang):
-	quantities = getFrequencies(text, important_chars)
-	numLetters = countLetters(quantities[0], important_chars)
+def howEnglish(text, lang):
+	stat = getFrequencies(text, lang[6])
+
 	#TODO: scale expected divergence with length of text
 	expected_error = 3
 	score = 0
 
 # punish large differences in letter frequency
-	for letter in important_chars:
+	for letter in lang[6]:
 # add 0 if the error is smaller than expected error
-		score += max(0, abs((quantities[0][letter]/numLetters)*100 - lang[0][letter]) - expected_error)
+		score += max(0, abs((stat[0][letter]/stat[7])*100
+		 - lang[0][letter]) - expected_error)
 		#print(letter + " " + str(score)) #for debugging
 # punish diletters not present in English
 # TODO: special case with too many different diletters?
-	for i in quantities[1]:
-		#add 3 for each diletter not present in English. Possible problem with SPACELESSTEXT
+	for i in stat[1]:
+		# TODO: Possible problem with SPACELESSTEXT
+		#add 3 for each diletter not present in English.
 		score += 3 * (not bool(str(i[0]+i[0]) in lang[1]))
 		#print(i[0] + i[0] + " " + str(score)) #for debugging
 # reward presence of well known words
-	for i in quantities[2]:	# TODO: allow lowercase i in case insensitive mode(-c)
+	for i in stat[2]:	# TODO: allow lowercase i in case insensitive mode(-c)
 		score -= bool(i[0] in lang[2])
-	for i in quantities[3]:
+	for i in stat[3]:
 		score -= bool(i[0] in lang[3])
-	for i in quantities[4]:
+	for i in stat[4]:
 		score -= bool(i[0] in lang[4])
-	for i in quantities[5]:
+	for i in stat[5]:
 		score -= bool(i[0] in lang[5])
 	return score
 #end howEnglish()
@@ -136,22 +143,21 @@ def cesarShift(encrypted, rot, rotatingSurface):
 	return result
 #end cesarShift()
 
-def bestCesarShift(ciphertext, important_chars, lang):
+def bestCesarShift(ciphertext, lang):
 	lowest_score = 100;
 	shift = 0;
-	for i, j in enumerate(important_chars):
-		text = cesarShift(ciphertext, i, important_chars)
-		score = howEnglish(text, important_chars, lang)
+	for i, j in enumerate(lang[6]):
+		text = cesarShift(ciphertext, i, lang[6])
+		score = howEnglish(text, lang)
 		lowest_score = min(lowest_score, score)
 		if lowest_score == score:
 			shift = i
 	return shift
 # end bestCesarShift()
 
-def printStatistics(text, important_chars, lang):
+def printStatistics(text, lang):
 
-	quantities = getFrequencies(text, important_chars)
-	numLetters = countLetters(quantities[0], important_chars)
+	stat = getFrequencies(text, lang[6])
 
 	#format the frequency table roughly with tabs
 	#TODO:redo with https://docs.python.org/3.5/library/string.html#format-specification-mini-language
@@ -164,32 +170,33 @@ def printStatistics(text, important_chars, lang):
 	print(head2.format(a = '', b = 'in', c = 'in', d = 'in', e = "Sequ-", f = 'in', g = 'in'))
 	print(head2.format(a = '', b = 'text', c = 'text', d = 'English', e = 'ence', f = 'Text', g = 'English'))
 
-	for letter in important_chars:
-		print(fmt2.format(a = letter, b = quantities[0][letter],
-		 c = (quantities[0][letter]/numLetters)*100,
-		 d = lang[0][letter], e = letter+letter, f = bool(quantities[1][letter]),
+	for letter in lang[6]:
+		print(fmt2.format(a = letter, b = stat[0][letter],
+		 c = (stat[0][letter]/stat[7])*100,
+		 d = lang[0][letter], e = letter+letter, f = bool(stat[1][letter]),
 		 g = bool(letter+letter in lang[1]))) #if english letters
 
 	print()
 	print(head.format(a = 'Word', b = 'Times', c = 'Freq', d = 'Freq'))
 	print(head.format(a = '', b = 'in', c = 'in', d = 'in'))
 	print(head.format(a = '', b = 'text', c = 'text', d = 'English'))
-	for i in quantities[2]:
-		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/quantities[6])*100), d = 0))
-	for i in quantities[3]:
-		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/quantities[6])*100), d = 0))
-	for i in quantities[4]:
-		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/quantities[6])*100), d = 0))
-	for i in quantities[5]:
-		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/quantities[6])*100), d = 0))
-	print("Score: " + str(howEnglish(text, important_chars, lang)))
+	for i in stat[2]:
+		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/stat[6])*100), d = 0))
+	for i in stat[3]:
+		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/stat[6])*100), d = 0))
+	for i in stat[4]:
+		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/stat[6])*100), d = 0))
+	for i in stat[5]:
+		print(fmt.format(a = i[0], b = i[1], c = ((i[1]/stat[6])*100), d = 0))
+	print("Score: " + str(howEnglish(text, lang)))
 
 def main(argv=None):
 	if argv is None:
 		argv = sys.argv
 
 	#parse command-line arguments
-	parser = argparse.ArgumentParser(description='This script will perform frequency analysis on the passed file')
+	parser = argparse.ArgumentParser(
+	description='This script will perform frequency analysis on the passed file')
 	parser.add_argument('infile', help="Pass the file you want to analyse")
 	case = parser.add_mutually_exclusive_group()
 	case.add_argument('-c', '--case-insensitive', action="store_true",
@@ -197,7 +204,8 @@ def main(argv=None):
 	case.add_argument('-C', '--case-sensitive', action='store_false',
 	dest="case", help="Pass if you care about the case", default=True)
 	parser.add_argument('-l', '--lang', default="lang/english.json",
-	help="Pass the path to a language statistics file", type=argparse.FileType('r', encoding='UTF-8'))
+	help="Pass the path to a language statistics file",
+	type=argparse.FileType('r', encoding='UTF-8'))
 	parser.add_argument('-v', '--verbose', action="count",
 	help="Pass once to print the ciphertext. To be extended")
 	args = parser.parse_args()
@@ -211,25 +219,22 @@ def main(argv=None):
 	#wordList2 = lang[3]
 	#wordList3 = lang[4]
 	#wordList4 = lang[5]
+	#alphabet = lang[6]
 
-	if args.case:
-		important_chars = string.ascii_lowercase
-	else:
-		important_chars = string.ascii_lowercase + string.ascii_uppercase
+	# if we use uppercase and lowercase, reflect it in the alphabet
+	if not args.case:
+		lang[6] = lang[6] + lang[6].upper()
 
 	# get the ciphertext out of the file
 	ciphertext = parseCiphertext(args.infile, args.case, args.verbose)
 
 	# analyse original text
-	quantities = getFrequencies(ciphertext, important_chars)
-
-	# count how many characters to work with
-	numLetters = countLetters(quantities[0], important_chars)
+	#stat = getFrequencies(ciphertext, important_chars)
 
 	# decode the ciphertext
-	plaintext = cesarShift(ciphertext, bestCesarShift(ciphertext, important_chars, lang), important_chars)
+	plaintext = cesarShift(ciphertext, bestCesarShift(ciphertext, lang), lang[6])
 
-	printStatistics(plaintext, important_chars, lang)
+	printStatistics(plaintext, lang)
 
 	print("\n" + plaintext)
 #end main(argv)
