@@ -10,17 +10,17 @@ import argparse
 import json
 
 def parseCiphertext(infile, case, verbose):
-	ciphertext = []
+	ciphertext = ""
 	#read the file into a list of strings(1 string per line)
 	with open(infile, 'r') as encryptedFile:
 		for line in encryptedFile:
 			#remove trailing newline(s)
 			while line.endswith(chr(10)): #'/n' newline
-				line = line[:-1]
+				line = line[:-1] + " "
 			#if case insensitive mode is turned on, turn all chars lowercase
 			if case:
 				line = line.lower()
-			ciphertext.append(line)
+			ciphertext += line
 			if verbose:
 				#print the newly appended line
 				print(ciphertext[-1])
@@ -34,18 +34,16 @@ def getFrequencies(text, important_chars):
 	word_freq = collections.Counter()
 
 	#letter frequency table
-	for i in text:
-		#get the frequency at which letters are present in text
-		freq = collections.Counter(i)
-		letter_freq += freq
-		#get all letters which appear next to themselves, like 'm' in common
-		for j, k in zip(i, i[1:]):
-			if j == k and j in important_chars:
-				di_letter_freq[j] +=1
-		#divide on whitespace
-		words = i.split()
-		freq = collections.Counter(words)
-		word_freq += freq
+	freq = collections.Counter(text)
+	letter_freq += freq
+	#get all letters which appear next to themselves, like 'm' in common
+	for j, k in zip(text, text[1:]):
+		if j == k and j in important_chars:
+			di_letter_freq[j] +=1
+	#divide on whitespace
+	words = text.split()
+	freq = collections.Counter(words)
+	word_freq += freq
 
 	#word frequency table
 	#TODO: strip the '-' word
@@ -233,7 +231,7 @@ def main(argv=None):
 
 	printStatistics(plaintext, important_chars, lang)
 
-	print(getFrequencies(plaintext, important_chars))
+	print("\n" + plaintext)
 #end main(argv)
 
 #based on https://www.artima.com/weblogs/viewpost.jsp?thread=4829
