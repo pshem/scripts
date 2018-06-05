@@ -12,18 +12,17 @@ import json
 def parseCiphertext(infile, case, verbose):
 	ciphertext = ""
 	#read the file into a list of strings(1 string per line)
-	with open(infile, 'r') as encryptedFile:
-		for line in encryptedFile:
-			#remove trailing newline(s)
-			while line.endswith(chr(10)): #'/n' newline
-				line = line[:-1] + " "
-			#if case insensitive mode is turned on, turn all chars lowercase
-			if case:
-				line = line.lower()
-			ciphertext += line
-			if verbose:
-				#print the newly appended line
-				print(ciphertext[-1])
+	for line in infile:
+		#remove trailing newline(s)
+		while line.endswith(chr(10)): #'/n' newline
+			line = line[:-1] + " "
+		#if case insensitive mode is turned on, turn all chars lowercase
+		if case:
+			line = line.lower()
+		ciphertext += line
+		if verbose:
+			#print the newly appended line
+			print(ciphertext)
 	return ciphertext
 #end parseCiphertext
 
@@ -197,7 +196,8 @@ def main(argv=None):
 	#parse command-line arguments
 	parser = argparse.ArgumentParser(
 	description='This script will perform frequency analysis on the passed file')
-	parser.add_argument('infile', help="Pass the file you want to analyse")
+	parser.add_argument('infile', help="Pass the file you want to analyse",
+    type=argparse.FileType('r', encoding='UTF-8'))
 	case = parser.add_mutually_exclusive_group()
 	case.add_argument('-c', '--case-insensitive', action="store_true",
 	dest="case", help="Pass if you want to ignore case(default)", default=True)
