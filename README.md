@@ -1,5 +1,7 @@
 ## Scripts
 
+![license: Apache2](https://img.shields.io/github/license/pshem/scripts.svg)
+
 A bunch of python3 scripts written as I learn the language.
 * Caesar decrypts the Caesar cipher, aka. ROT by showing you possible rotations.
 * Substitution currently performs letter and word frequency analysis on the file you pass to it. It should eventually get some automated decryption abilities
